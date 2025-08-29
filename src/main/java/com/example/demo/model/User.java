@@ -1,30 +1,40 @@
 package com.example.demo.model;
+import jakarta.persistence.*;
 
-public class Member {
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
     private String name;
-    private int id;
     private int age;
     private String email;
 
-    public Member(String name, int id, int age, String email) {
+    public User() {
+    }
+
+    public User(String name, int age, String email) {
         this.name = name;
-        this.id = id;
         this.age = age;
         this.email = email;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {}
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getAge() {

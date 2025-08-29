@@ -5,11 +5,24 @@
     <title>Chi tiết thành viên</title>
 </head>
 <body>
-<h1>Chi tiết thành viên</h1>
-<p><strong>ID:</strong> <span th:text="${member.id}"></span></p>
-<p><strong>Tên:</strong> <span th:text="${member.name}"></span></p>
-<p><strong>Email:</strong> <span th:text="${member.email}"></span></p>
+    <h1>Chi tiết thành viên</h1>
 
-<a href="/members">← Quay lại danh sách</a>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <tr>
+            <th>Tên</th>
+            <td th:text="${member.name}"></td>
+        </tr>
+        <tr>
+            <th>Tuổi</th>
+            <td th:text="${member.age}"></td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td th:text="${member.email}"></td>
+        </tr>
+    </table>
+
+    <br>
+    <a href="/">← Quay lại danh sách</a>
 </body>
 </html>

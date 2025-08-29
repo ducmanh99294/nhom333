@@ -7,8 +7,8 @@
 <body>
 <h1>Danh sách thành viên</h1>
 <ul>
-    <li th:each="member : ${members}">
-        <a th:href="@{|/members/${member.id}|}" th:text="${member.name}"></a>
+    <li th:each="user : ${users}">
+        <a th:href="@{|/member/${user.id}|}" th:text="${user.name}"></a>
     </li>
 </ul>
 </body>
