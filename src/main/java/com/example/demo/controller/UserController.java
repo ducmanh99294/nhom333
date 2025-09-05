@@ -1,48 +1,113 @@
 package com.example.demo.controller;
-import com.example.demo.model.User;
-import com.example.demo.Repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 
-import java.util.Arrays;
+import com.example.demo.model.User;
+import com.example.demo.services.CompanyService;
+import com.example.demo.services.UserService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.ui.Model;
+
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api")
 public class UserController {
-    @Autowired
-    private UserRepository userRepository;
 
-    //hiển thị danh dsach thành viên
-    @GetMapping("/")
-    public String showMembers(Model model) {
-        List<User> users = userRepository.findAll();
-        model.addAttribute("users", users);
-        return "printMember";
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    //hiển thị chi tiết thành viên
-@GetMapping("/member/{id}")
-public String getMemberDetail(@PathVariable Long id, Model model) {
-    User member = userRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + id));
-    model.addAttribute("member", member);
-    return "member";
-}
+    @GetMapping("/users")
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
 
-    @GetMapping("/add-user")
-    public String showForm(Model model) {
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/users")
+    public User createUser(@RequestBody User user) {
+        return userService.saveUser(user);
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        return userService.getUserById(id)
+                .map(user -> {
+                    user.setFirstName(userDetails.getFirstName());
+                    user.setLastName(userDetails.getLastName());
+                    user.setEmail(userDetails.getEmail());
+                    user.setPassword(userDetails.getPassword());
+                    user.setCompany(userDetails.getCompany());
+                    user.setRoles(userDetails.getRoles());
+                    return ResponseEntity.ok(userService.saveUser(user));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @Controller
+    class UserViewController {
+
+        private final CompanyService companyService;
+
+    private final UserService userService;
+
+    public UserViewController(UserService userService, CompanyService companyService) {
+        this.userService = userService;
+        this.companyService = companyService;
+    }
+
+    // Hiển thị danh sách user trên giao diện
+    @GetMapping("/users")
+    public String listUsers(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        return "user"; 
+    }
+
+    @GetMapping("/users/add")
+    public String showAddUserForm(Model model) {
         model.addAttribute("user", new User());
-        return "addUser";
+        model.addAttribute("companies", companyService.getAllCompanies());
+        return "addUser"; 
     }
 
-    @PostMapping("/add-user")
-    public String addUser(@ModelAttribute User user) {
-        userRepository.save(user);
-        return "redirect:/add-user?success";
+    @PostMapping("/users/save")
+    public String saveUser(@ModelAttribute("user") User user) {
+        userService.saveUser(user);
+        return "redirect:/users";
     }
+
+    @GetMapping("/users/edit/{id}")
+    public String showEditUserForm(@PathVariable Long id, Model model) {
+        return userService.getUserById(id)
+                .map(user -> {
+                    model.addAttribute("user", user);
+                    model.addAttribute("companies", companyService.getAllCompanies());
+                    return "addUser";
+                })
+                .orElse("redirect:/users");
+    }
+
+    @GetMapping("/users/delete/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return "redirect:/users";
+    }
+
+}
+    
 }
