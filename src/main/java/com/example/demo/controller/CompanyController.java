@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Company;
-import com.example.demo.services.CompanyService;
+import com.example.demo.service.CompanyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
