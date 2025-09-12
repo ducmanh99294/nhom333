@@ -42,16 +42,4 @@ public class AutheController {
 
         return "redirect:/login";
     }
-
-    // Trang login (Spring Security sẽ redirect ở đây khi cần login)
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login"; // trỏ tới login.html trong templates
-    }
-
-    // Trang chủ sau khi login thành công
-    @GetMapping("/")
-    public String homePage() {
-        return "index"; // bạn cần có index.html
-    }
 }

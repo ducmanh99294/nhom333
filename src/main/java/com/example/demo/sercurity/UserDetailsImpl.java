@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package com.example.demo.sercurity;
 
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
