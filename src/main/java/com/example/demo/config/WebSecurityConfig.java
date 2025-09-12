@@ -44,7 +44,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         request -> request
-                                .requestMatchers("/register", "/login", "/css/**", "/js/**", "/h2-console/**","/company/**","/users/**"  ).permitAll()
+                                .requestMatchers("/register", "/login", "/css/**", "/js/**", "/h2-console/**"  ).permitAll()
                                 .requestMatchers("/users").hasAnyAuthority("USER", "ADMIN")
                                 .anyRequest().authenticated()
                 )

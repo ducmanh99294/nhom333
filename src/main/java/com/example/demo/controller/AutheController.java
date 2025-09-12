@@ -48,6 +48,10 @@ public class AutheController {
         }
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        Role defaultRole = roleRepository.findByName("USER")
+            .orElseThrow(() -> new RuntimeException("Role USER không tồn tại"));
+        user.setRoles(Set.of(defaultRole));
+
         userRepository.save(user);
 
         return "redirect:/login?success";
