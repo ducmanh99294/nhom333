@@ -8,6 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.Arrays;
@@ -28,18 +29,21 @@ public class AutheController {
     public String showRegistrationForm(Model model) {
         model.addAttribute("user", new User());
 
-        return "signup";
+        return "register";
     }
 
-    @PostMapping("/process-register")
-    public String processRegister(User user) {
+    @PostMapping("/register")
+    public String registerUser(@ModelAttribute("user") User user, Model model) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            model.addAttribute("error", "Email đã tồn tại!");
+            return "register"; // quay lại trang register kèm lỗi
+        }
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String encodedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
-        Set<Role> roles = new HashSet<>(Arrays.asList(new Role("USER")));
-        user.setRoles(roles);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
 
-        return "redirect:/login";
-    }
+        return "redirect:/login?success";
+    
+}
+
 }
