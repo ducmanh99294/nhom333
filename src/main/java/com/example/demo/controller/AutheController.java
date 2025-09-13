@@ -2,7 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
+import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -10,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -19,6 +24,9 @@ import java.util.Set;
 public class AutheController {
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
 
     @GetMapping("/login")
     public String login() {
@@ -40,10 +48,15 @@ public class AutheController {
         }
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        Role defaultRole = roleRepository.findByName("USER")
+            .orElseThrow(() -> new RuntimeException("Role USER không tồn tại"));
+        user.setRoles(Set.of(defaultRole));
+
         userRepository.save(user);
 
         return "redirect:/login?success";
-    
+    }
+
 }
 
 }
