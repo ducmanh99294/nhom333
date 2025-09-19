@@ -1,1 +1,33 @@
-package com.example.demo.service; import com.example.demo.Dto.CompanyDTO; import com.example.demo.Dto.UserDTO; import com.example.demo.model.Company; import com.example.demo.model.User; import java.util.List; import java.util.stream.Collectors; public class CompanyService { public static CompanyDTO toDTO(Company company) { if (company == null) return null; CompanyDTO dto = new CompanyDTO(); dto.setId(company.getId()); dto.setCompanyName(company.getCompanyName()); // Map user list sang UserDTO (nhưng bỏ companyName để tránh lặp) List<UserDTO> userDTOs = company.getUsers().stream() .map(user -> { UserDTO u = UserService.toDTO(user); u.setCompanyName(null); // ✅ tránh vòng lặp company -> users -> company return u; }) .collect(Collectors.toList()); dto.setUsers(userDTOs); return dto; } }
+package com.example.demo.service;
+
+import com.example.demo.Dto.CompanyDTO;
+import com.example.demo.Dto.UserDTO;
+import com.example.demo.model.Company;
+import com.example.demo.model.User;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class CompanyService {
+
+    public static CompanyDTO toDTO(Company company) {
+        if (company == null) return null;
+
+        CompanyDTO dto = new CompanyDTO();
+        dto.setId(company.getId());
+        dto.setCompanyName(company.getCompanyName());
+
+        // Map user list sang UserDTO (nhưng bỏ companyName để tránh lặp)
+        List<UserDTO> userDTOs = company.getUsers().stream()
+                .map(user -> {
+                    UserDTO u = UserService.toDTO(user);
+                    u.setCompanyName(null); // ✅ tránh vòng lặp company -> users -> company
+                    return u;
+                })
+                .collect(Collectors.toList());
+
+        dto.setUsers(userDTOs);
+
+        return dto;
+    }
+}
