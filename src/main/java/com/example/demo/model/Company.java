@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class Company {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "company_id")
+    @JsonIgnore
     private List<User> users;
 
     public List<User> getUsers() {
