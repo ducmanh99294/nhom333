@@ -19,9 +19,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class WebSecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtRequestFilter jwtRequestFilter;
 
-    public WebSecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    public WebSecurityConfig(CustomUserDetailsService customUserDetailsService,
+                             JwtRequestFilter jwtRequestFilter) {
         this.customUserDetailsService = customUserDetailsService;
+        this.jwtRequestFilter = jwtRequestFilter;
     }
 
     @Bean
@@ -40,22 +43,17 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        request -> request
-                                .requestMatchers("/register", "/login", "/css/**", "/js/**", "/h2-console/**"  ).permitAll()
-                                .requestMatchers("/users").hasAnyAuthority("USER", "ADMIN")
-                                .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/users", true) // true = luôn redirect về /users sau login
-                        .permitAll())
-                .logout(config -> config
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .permitAll());
+                .csrf(AbstractHttpConfigurer::disable) // không cần csrf khi dùng JWT
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // không dùng session
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/register", "/login", "/h2-console/**").permitAll()
+                        .requestMatchers("/company/**").hasAuthority("ADMIN")
+                        .anyRequest().authenticated()
+                );
+
+        // Thêm JWT filter trước UsernamePasswordAuthenticationFilter
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
