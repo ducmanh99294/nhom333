@@ -1,3 +1,31 @@
-package com.example.demo.Dto; import java.util.List; public class CompanyDTO { private int id; private String companyName; private List<UserDTO> users; 
-    // --- GETTER & SETTER --- 
-    public int getId() { return id; } public void setId(int id) { this.id = id; } public String getCompanyName() { return companyName; } public void setCompanyName(String companyName) { this.companyName = companyName; } public List<UserDTO> getUsers() { return users; } public void setUsers(List<UserDTO> users) { this.users = users; } }
+package com.example.demo.Dto;
+
+import java.util.List;
+
+public class CompanyDTO {
+    private int id;
+    private String companyName;
+    private List<UserDTO> users;
+
+    // --- GETTER & SETTER ---
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public List<UserDTO> getUsers() {
+        return users;
+    }
+    public void setUsers(List<UserDTO> users) {
+        this.users = users;
+    }
+}
