@@ -1,34 +1,33 @@
 package com.example.demo.service;
 
+import com.example.demo.Dto.CompanyDTO;
+import com.example.demo.Dto.UserDTO;
 import com.example.demo.model.Company;
-import com.example.demo.repository.CompanyRepository;
-import org.springframework.stereotype.Service;
+import com.example.demo.model.User;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Service
 public class CompanyService {
 
-    private final CompanyRepository companyRepository;
+    public static CompanyDTO toDTO(Company company) {
+        if (company == null) return null;
 
-    public CompanyService(CompanyRepository companyRepository) {
-        this.companyRepository = companyRepository;
-    }
+        CompanyDTO dto = new CompanyDTO();
+        dto.setId(company.getId());
+        dto.setCompanyName(company.getCompanyName());
 
-    public List<Company> getAllCompanies() {
-        return companyRepository.findAll();
-    }
+        // Map user list sang UserDTO (nhưng bỏ companyName để tránh lặp)
+        List<UserDTO> userDTOs = company.getUsers().stream()
+                .map(user -> {
+                    UserDTO u = UserService.toDTO(user);
+                    u.setCompanyName(null); // ✅ tránh vòng lặp company -> users -> company
+                    return u;
+                })
+                .collect(Collectors.toList());
 
-    public Optional<Company> getCompanyById(Integer id) {
-        return companyRepository.findById(id);
-    }
+        dto.setUsers(userDTOs);
 
-    public Company saveCompany(Company company) {
-        return companyRepository.save(company);
-    }
-
-    public void deleteCompany(Integer id) {
-        companyRepository.deleteById(id);
+        return dto;
     }
 }

@@ -1,55 +1,67 @@
 package com.example.demo.controller;
 
+import com.example.demo.Dto.CompanyDTO;
 import com.example.demo.model.Company;
+import com.example.demo.repository.CompanyRepository;
 import com.example.demo.service.CompanyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/company")
-public class CompanyController {
+public class CompanyRestController {
 
-    private final CompanyService companyService;
+    @Autowired
+    private CompanyRepository companyRepository;
 
-    public CompanyController(CompanyService companyService) {
-        this.companyService = companyService;
+    // ✅ GET ALL COMPANIES
+    @GetMapping
+    public ResponseEntity<List<CompanyDTO>> getAllCompanies() {
+        List<CompanyDTO> companies = companyRepository.findAll()
+                .stream()
+                .map(CompanyService::toDTO)
+                .toList();
+        return ResponseEntity.ok(companies);
     }
 
-    @GetMapping("/companies")
-    public List<Company> getAllCompanies() {
-        return companyService.getAllCompanies();
+    // ✅ GET COMPANY BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<CompanyDTO> getCompany(@PathVariable int id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+        return ResponseEntity.ok(CompanyService.toDTO(company));
     }
 
-    @GetMapping("/companies/{id}")
-    public ResponseEntity<Company> getCompanyById(@PathVariable Integer id) {
-        return companyService.getCompanyById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    // ✅ CREATE COMPANY
+    @PostMapping
+    public ResponseEntity<CompanyDTO> createCompany(@RequestBody Company company) {
+        Company saved = companyRepository.save(company);
+        return ResponseEntity.ok(CompanyService.toDTO(saved));
     }
 
-    @PostMapping("/companies")
-    public Company createCompany(@RequestBody Company company) {
-        return companyService.saveCompany(company);
+    // ✅ UPDATE COMPANY
+    @PutMapping("/{id}")
+    public ResponseEntity<CompanyDTO> updateCompany(@PathVariable int id, @RequestBody Company updatedCompany) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Company not found"));
+
+        company.setCompanyName(updatedCompany.getCompanyName());
+        company.setUsers(updatedCompany.getUsers());
+
+        Company saved = companyRepository.save(company);
+        return ResponseEntity.ok(CompanyService.toDTO(saved));
     }
 
-    @PutMapping("/companies/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable Integer id, @RequestBody Company companyDetails) {
-        return companyService.getCompanyById(id)
-                .map(company -> {
-                    company.setCompanyName(companyDetails.getCompanyName());
-                    company.setUsers(companyDetails.getUsers());
-                    return ResponseEntity.ok(companyService.saveCompany(company));
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/companies/{id}")
-    public ResponseEntity<Void> deleteCompany(@PathVariable Integer id) {
-        companyService.deleteCompany(id);
-        return ResponseEntity.noContent().build();
+    // ✅ DELETE COMPANY
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCompany(@PathVariable int id) {
+        if (!companyRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        companyRepository.deleteById(id);
+        return ResponseEntity.ok("Company deleted successfully");
     }
 }
