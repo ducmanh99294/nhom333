@@ -19,7 +19,7 @@ public class User {
     private String lastName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="company_id")
+    @JoinColumn(name="company_id", nullable = true)
     private Company company;
 
     @Column(nullable = false)
@@ -28,7 +28,7 @@ public class User {
     @Column(nullable = false, unique = true)   // ✅ email phải là duy nhất
     private String email;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
