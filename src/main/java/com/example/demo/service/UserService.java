@@ -1,43 +1,34 @@
 package com.example.demo.service;
 
+import com.example.demo.Dto.UserDTO;
 import com.example.demo.model.User;
-import com.example.demo.repository.UserRepository;
-import org.springframework.stereotype.Service;
+import com.example.demo.model.Role;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Service
 public class UserService {
 
-    private final UserRepository userRepository;
+    public static UserDTO toDTO(User user) {
+        if (user == null) return null;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
 
-    // ✅ Tìm user bằng email (dùng cho login)
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
+        // Lấy tên công ty nếu có
+        if (user.getCompany() != null) {
+            dto.setCompanyName(user.getCompany().getCompanyName());
+        }
 
-    // ✅ Lấy tất cả user
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
+        // Lấy danh sách role name
+        Set<String> roleNames = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+        dto.setRoles(roleNames);
 
-    // ✅ Lấy user theo ID
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
-    }
-
-    // ✅ Lưu hoặc cập nhật user
-    public User saveUser(User user) {
-        return userRepository.save(user);
-    }
-
-    // ✅ Xóa user theo ID
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        return dto;
     }
 }
