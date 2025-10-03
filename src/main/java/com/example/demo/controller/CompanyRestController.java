@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -45,14 +46,28 @@ public class CompanyRestController {
     // ✅ UPDATE COMPANY
     @PutMapping("/{id}")
     public ResponseEntity<CompanyDTO> updateCompany(@PathVariable int id, @RequestBody Company updatedCompany) {
+        // Lấy company từ DB
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
+        // Cập nhật tên công ty
         company.setCompanyName(updatedCompany.getCompanyName());
-        company.setUsers(updatedCompany.getUsers());
 
+        // Cập nhật users nếu có, tránh null
+        if (updatedCompany.getUsers() != null) {
+            company.setUsers(updatedCompany.getUsers());
+        }
+
+        // Lưu vào DB
         Company saved = companyRepository.save(company);
-        return ResponseEntity.ok(CompanyService.toDTO(saved));
+
+        // Trả về DTO, đảm bảo users không null
+        CompanyDTO dto = CompanyService.toDTO(saved);
+        if (dto.getUsers() == null) {
+            dto.setUsers(new ArrayList<>()); // tránh trả về null
+        }
+
+        return ResponseEntity.ok(dto);
     }
 
     // ✅ DELETE COMPANY

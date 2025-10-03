@@ -60,7 +60,7 @@ public class AutheController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email đã tồn tại!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Email đã tồn tại!"));
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -71,7 +71,7 @@ public class AutheController {
 
         userRepository.save(user);
 
-        return ResponseEntity.ok("Đăng ký thành công");
+        return ResponseEntity.ok(Map.of("message", "Đăng ký thành công"));
     }
 
 }

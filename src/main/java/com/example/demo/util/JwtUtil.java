@@ -17,7 +17,7 @@ public class JwtUtil {
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role", role)  // thêm role vào claim
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SECRET_KEY)
@@ -28,9 +28,9 @@ public class JwtUtil {
         return getClaims(token).getSubject();
     }
 
-    public String extractRole(String token) {
-        return getClaims(token).get("role", String.class);
-    }
+//    public String extractRole(String token) {
+//        return getClaims(token).get("role", String.class);
+//    }
 
     public boolean validateToken(String token) {
         try {
