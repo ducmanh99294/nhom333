@@ -25,6 +25,7 @@ const Login: React.FC = () => {
         const data = await res.json();
         console.log(data)
         if(data && data.role === 'ADMIN') {
+            localStorage.setItem('role',data.role)
             localStorage.setItem('token', data.token)
             navigate('/user')
         } else {

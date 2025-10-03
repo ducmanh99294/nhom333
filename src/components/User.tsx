@@ -1,5 +1,6 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useRef, useState } from 'react';
 import "../assets/css/user.css"
+import { useNavigate } from 'react-router-dom';
 
 const User: React.FC = () => {
     const [users,setUsers] = useState<any>([]);
@@ -7,11 +8,22 @@ const User: React.FC = () => {
     const [editingUser, setEditingUser] = useState<any | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const hasRun = useRef(false);
+    const navigate = useNavigate();
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const api = "http://localhost:8080";
 
     useEffect(() => {
+      if (hasRun.current) return;
+      hasRun.current = true;
+
+      if(role === "ADMIN") {
+        fetchUser();  
+      } else {
+        alert('vui lòng đăng nhập với tài khoản admin')
+        navigate("/login")
+      }
         fetchUser();
     }, [token]);
     
@@ -35,72 +47,71 @@ const User: React.FC = () => {
         }
     }
 
-    const handleEdit = (e: any) => {
-        setEditingUser(e);
-        setIsModalOpen(true);
+  const handleDeleteUser = async (id: number) => {
+    try {
+      const res = await fetch(`${api}/api/users/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      console.log(data);
+      setUsers((prev: any[]) => prev.filter((user) => user.id !== id));
+    } catch (err) {
+      console.error("Error deleting user:", err);
     }
+  };
 
-    const handleDelete = async (userId: any) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
-        try {
-            const res = await fetch(`${api}/api/user/${userId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-            });
-            
-            if (res.ok) {
-            setUsers(users.filter((user: any) => user.id !== userId));
-            alert('Xóa người dùng thành công!');
-            } else {
-            alert('Xóa người dùng thất bại!');
-            }
-        } catch (err) {
-            console.log("err: ", err);
-            alert('Có lỗi xảy ra khi xóa người dùng!');
-        }
-        }
-    };
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
 
-    const handleSave = async (e: any) => {
-        e.preventDefault();
-        if (!editingUser) return;
+    try {
+      const res = await fetch(`${api}/api/users/${editingUser.id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json" ,
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(editingUser),
+      });
 
-        try {
-        const res = await fetch(`${api}/api/user/${editingUser.id}`, {
-            method: 'PUT',
-            headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(editingUser),
-        });
+      if (!res.ok) throw new Error("Cập nhật thất bại");
 
-        if (res.ok) {
-            setUsers(users.map((user: any) => 
-            user.id === editingUser.id ? editingUser : user
-            ));
-            setIsModalOpen(false);
-            setEditingUser(null);
-            alert('Cập nhật thông tin thành công!');
-        } else {
-            alert('Cập nhật thông tin thất bại!');
-        }
-        } catch (err) {
-        console.log("err: ", err);
-        alert('Có lỗi xảy ra khi cập nhật thông tin!');
-        }
-    };
+      const updatedUser = await res.json();
 
-    const handleInputChange = (e: any) => {
-        if (editingUser) {
-        setEditingUser({
-            ...editingUser,
-            [e.target.name]: e.target.value
-        });
-        }
-    };
+      // Cập nhật lại danh sách users
+      setUsers((prev: any[]) =>
+        prev.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+      );
+
+      alert("Cập nhật thành công!");
+      setIsModalOpen(false);
+      setEditingUser(null);
+    } catch (err) {
+      console.error("Update user error:", err);
+      alert("Có lỗi xảy ra khi cập nhật!");
+    }
+  };
+
+  const handleEdit = (e: any) => {
+      setEditingUser(e);
+      setIsModalOpen(true);
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEditingUser((prev: any) => ({ ...prev, [name]: value }));
+  };
+
+
+    const handleLogout = () => {
+      localStorage.removeItem('token')
+      localStorage.removeItem('role')
+      navigate("/login")
+    }
 
     return (
         <>
@@ -113,6 +124,11 @@ const User: React.FC = () => {
         <div className="user-stats">
           <span>Tổng số: {users.length} nhân viên</span>
         </div>
+        <button 
+          className="logout-btn"
+          onClick={handleLogout}>
+            đăng xuất
+        </button>
       </div>
 
       <div className="user-table-container">
@@ -143,7 +159,7 @@ const User: React.FC = () => {
                   </button>
                   <button 
                     className="btn-delete"
-                    onClick={() => handleDelete(user.id)}
+                    onClick={() => handleDeleteUser(user.id)}
                   >
                     Xóa
                   </button>
@@ -176,19 +192,31 @@ const User: React.FC = () => {
                 &times;
               </button>
             </div>
-            <form onSubmit={handleSave} className="user-form">
+            <form onSubmit={handleUpdateUser} className="user-form">
               <div className="form-group">
-                <label htmlFor="name">Họ tên:</label>
+                <label htmlFor="firstName">Họ:</label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={editingUser.name}
+                  id="firstName"
+                  name="firstName"
+                  value={editingUser.firstName || ""}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>              
+
+              <div className="form-group">
+                <label htmlFor="lastName">Tên:</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={editingUser.lastName || ""}
                   onChange={handleInputChange}
                   required
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="email">Email:</label>
                 <input
@@ -200,56 +228,7 @@ const User: React.FC = () => {
                   required
                 />
               </div>
-              
-              <div className="form-group">
-                <label htmlFor="phone">Số điện thoại:</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={editingUser.phone}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="position">Chức vụ:</label>
-                <input
-                  type="text"
-                  id="position"
-                  name="position"
-                  value={editingUser.position}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="department">Phòng ban:</label>
-                <input
-                  type="text"
-                  id="department"
-                  name="department"
-                  value={editingUser.department}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="status">Trạng thái:</label>
-                <select
-                  id="status"
-                  name="status"
-                  value={editingUser.status}
-                  onChange={handleInputChange}
-                >
-                  <option value="active">Đang hoạt động</option>
-                  <option value="inactive">Ngừng hoạt động</option>
-                </select>
-              </div>
-              
+            
               <div className="form-actions">
                 <button type="submit" className="btn-save">Lưu thay đổi</button>
                 <button 

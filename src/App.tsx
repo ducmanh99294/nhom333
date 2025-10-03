@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/login";
 import Register from "./components/register";
 import User from "./components/User";
+import Company from "./components/Company";
 
 // Component xử lý layout theo route
 const AppContent: React.FC = () => {
@@ -12,7 +13,7 @@ const AppContent: React.FC = () => {
       <Route path="/login" element={<Login/>} />
       <Route path="/register" element={<Register/>} />
       <Route path="/user" element={<User/>} />
-      <Route path="/company" element={<Register/>} />
+      <Route path="/company" element={<Company/>} />
     </Routes>
     </>
   );
